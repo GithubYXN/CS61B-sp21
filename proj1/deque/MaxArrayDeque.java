@@ -26,16 +26,4 @@ public class MaxArrayDeque<T> extends ArrayDeque<T> {
         }
         return maxElement;
     }
-
-    private static class IntegerComparator implements Comparator<MaxArrayDeque<Integer>> {
-        public int compare(MaxArrayDeque<Integer> a, MaxArrayDeque<Integer> b) {
-            return a.max() - b.max();
-        }
-    }
-
-    private static class StringComparator implements Comparator<MaxArrayDeque<String>> {
-        public int compare(MaxArrayDeque<String> a, MaxArrayDeque<String> b) {
-            return a.max().compareTo(b.max());
-        }
-    }
 }
