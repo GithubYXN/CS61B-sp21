@@ -1,8 +1,8 @@
 package deque;
 
-import afu.org.checkerframework.checker.oigj.qual.O;
+import java.util.Iterator;
 
-public class LinkedListDeque<T> implements Deque<T> {
+public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
     public class Node {
         public T data;
         public Node next;
@@ -21,6 +21,36 @@ public class LinkedListDeque<T> implements Deque<T> {
     public LinkedListDeque() {
         sentinel = new Node(null);
         size = 0;
+    }
+
+    public Iterator<T> iterator() {
+        return new LinkedListDequeIterator();
+    }
+
+    private class LinkedListDequeIterator implements Iterator<T> {
+        private Node cur;
+        private int cnt;
+
+        public LinkedListDequeIterator() {
+            cur = sentinel;
+            cnt = 0;
+        }
+
+        @Override
+        public boolean hasNext() {
+            if (cur.next == null) {
+                return false;
+            }
+            return cnt < size;
+        }
+
+        @Override
+        public T next() {
+            T ret = cur.next.data;
+            cur = cur.next;
+            cnt++;
+            return ret;
+        }
     }
 
     @Override
@@ -127,15 +157,57 @@ public class LinkedListDeque<T> implements Deque<T> {
         if (index < 0 || index >= size) {
             return null;
         }
+        int cnt = 0;
+        for (T data : this) {
+            if (cnt == index) {
+                return data;
+            }
+            cnt++;
+        }
 
+        return null;
+    }
+
+    public T getRecursive(int index) {
+        if (index < 0 || index >= size) {
+            return null;
+        }
         int cnt = 0;
         for (Node cur = sentinel.next; cur != null; cur = cur.next) {
             if (cnt == index) {
                 return cur.data;
             }
-            cnt += 1;
+        }
+        return null;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        }
+        if (o == null || o.getClass() != this.getClass()) {
+            return false;
         }
 
-        return null;
+        LinkedListDeque<T> other = (LinkedListDeque<T>) o;
+        if (other.size() != this.size()) {
+            return false;
+        }
+        for (T item : this) {
+            if (!other.contains(item)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean contains(T item) {
+        for (int i = 0; i < size; i++) {
+            if (item.equals(get(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 }

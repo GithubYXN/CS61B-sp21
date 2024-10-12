@@ -147,9 +147,6 @@ public class LinkedListDequeTest {
         L.addLast("third");
         L.addFirst("first");
 
-        System.out.println(L.removeFirst());
-        System.out.println(L.removeLast());
-
-        L.printDeque();
+        System.out.println(L.get(1));
     }
 }
