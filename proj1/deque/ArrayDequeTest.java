@@ -3,12 +3,14 @@ package deque;
 import edu.princeton.cs.algs4.StdRandom;
 import org.junit.Test;
 
+import static org.junit.Assert.*;
+
 public class ArrayDequeTest {
 
     @Test
     public void test() {
-        ArrayDeque<Integer> dq = new ArrayDeque<>();
 
+        ArrayDeque<Integer> dq = new ArrayDeque<>();
         int N = 50000;
 
         for (int i = 0; i < N; i++) {
@@ -27,5 +29,15 @@ public class ArrayDequeTest {
                 dq.get(ranIdx);
             }
         }
+
+    }
+
+    @Test
+    public void test2() {
+
+        ArrayDeque<Integer> dq = new ArrayDeque<>();
+        dq.addFirst(5);
+        assertFalse(dq.isEmpty());
+
     }
 }

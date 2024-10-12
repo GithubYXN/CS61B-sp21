@@ -3,6 +3,7 @@ package deque;
 import java.util.Iterator;
 
 public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
+
     public class Node {
         public T data;
         public Node next;
@@ -88,10 +89,10 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         }
     }
 
-    @Override
-    public boolean isEmpty() {
-        return size == 0;
-    }
+//    @Override
+//    public boolean isEmpty() {
+//        return size == 0;
+//    }
 
     @Override
     public int size() {
@@ -210,4 +211,5 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         }
         return false;
     }
+
 }

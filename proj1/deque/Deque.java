@@ -5,8 +5,6 @@ public interface Deque<T> {
 
     public void addLast(T item);
 
-    public boolean isEmpty();
-
     public int size();
 
     public void printDeque();
@@ -16,4 +14,8 @@ public interface Deque<T> {
     public T removeLast();
 
     public T get(int index);
+
+    public default boolean isEmpty() {
+        return size() == 0;
+    };
 }
