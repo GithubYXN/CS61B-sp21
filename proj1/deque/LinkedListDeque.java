@@ -9,7 +9,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         private Node next;
         private Node prev;
 
-        public Node(T data) {
+        Node(T data) {
             this.data = data;
             this.next = null;
             this.prev = null;
@@ -32,7 +32,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         private Node cur;
         private int cnt;
 
-        public LinkedListDequeIterator() {
+        LinkedListDequeIterator() {
             cur = sentinel;
             cnt = 0;
         }
@@ -178,6 +178,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
             if (cnt == index) {
                 return cur.data;
             }
+            cnt++;
         }
         return null;
     }

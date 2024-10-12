@@ -142,10 +142,13 @@ public class LinkedListDequeTest {
     @Test
     public void addTest() {
         LinkedListDeque<Integer> L = new LinkedListDeque<>();
-        L.addLast(0);
-        assertEquals((Integer) 0, L.removeLast());
-        L.addLast(2);
+        L.addFirst(2);
+        L.addLast(3);
+        L.addLast(4);
+        L.addFirst(5);
+        L.addLast(6);
+        L.removeLast();
 
-        assertEquals((Integer) 2, L.getRecursive(0));
+        assertEquals((Integer) 3, L.getRecursive(2));
     }
 }

@@ -3,19 +3,19 @@ package deque;
 public interface Deque<T> {
     void addFirst(T item);
 
-     void addLast(T item);
+    void addLast(T item);
 
-     int size();
+    int size();
 
-     void printDeque();
+    void printDeque();
 
-     T removeFirst();
+    T removeFirst();
 
-     T removeLast();
+    T removeLast();
 
-     T get(int index);
+    T get(int index);
 
-     default boolean isEmpty() {
-        return size() == 0;
+    default boolean isEmpty() {
+    return size() == 0;
     };
 }
