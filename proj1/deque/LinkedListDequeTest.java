@@ -141,9 +141,11 @@ public class LinkedListDequeTest {
 
     @Test
     public void addTest() {
-        LinkedListDeque<String> L = new LinkedListDeque<>();
-        ArrayDeque<String> A = new ArrayDeque<>();
+        LinkedListDeque<Integer> L = new LinkedListDeque<>();
+        L.addLast(0);
+        assertEquals((Integer) 0, L.removeLast());
+        L.addLast(2);
 
-        assertTrue(A.equals(L));
+        assertEquals((Integer) 2, L.getRecursive(0));
     }
 }

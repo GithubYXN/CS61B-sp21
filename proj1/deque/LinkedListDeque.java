@@ -174,7 +174,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
             return null;
         }
         int cnt = 0;
-        for (Node cur = sentinel.next; cur.next != sentinel.next; cur = cur.next) {
+        for (Node cur = sentinel.next; size == 1 || cur.next != sentinel.next; cur = cur.next) {
             if (cnt == index) {
                 return cur.data;
             }
