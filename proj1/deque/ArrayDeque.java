@@ -6,11 +6,14 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     private T[] items;
     private int size;
     private int head;
+    private int length;
+    private final int MIN_LEN = 16;
 
     public ArrayDeque() {
         items = (T[]) new Object[8];
         size = 0;
         head = -1;
+        length = items.length;
     }
 
     public Iterator<T> iterator() {
@@ -34,7 +37,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         @Override
         public T next() {
             T item = items[h];
-            h = (h + 1) % items.length;
+            h = (h + 1) % length;
             cnt += 1;
             return item;
         }
@@ -69,9 +72,18 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         return true;
     }
 
+    public int getLength() {
+        return length;
+    }
+
     @Override
     public void addFirst(T item) {
-        head = head == -1 ? 0 : ((head - 1) + items.length) % items.length;
+        if (size == length) {
+            int capacity = length + (length >> 1);
+            resize(capacity);
+            length = capacity;
+        }
+        head = head == -1 ? 0 : ((head - 1) + length) % length;
         items[head] = item;
         size += 1;
     }
@@ -82,7 +94,12 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             addFirst(item);
             return;
         }
-        int index = (head + size) % items.length;
+        if (size == length) {
+            int capacity = length + (length >> 1);
+            resize(capacity);
+            length = capacity;
+        }
+        int index = (head + size) % length;
         items[index] = item;
         size += 1;
     }
@@ -97,6 +114,22 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         return size;
     }
 
+    public void resize(int capacity) {
+        T[] a = (T[]) new Object[capacity];
+        int idx = 0;
+        int H = head;
+        try {
+            for (T item : this) {
+                a[idx++] = item;
+            }
+        } catch (Exception e) {
+            throw new ArrayIndexOutOfBoundsException();
+        }
+
+        items = a;
+        head = 0;
+    }
+
     @Override
     public void printDeque() {
         if (size == 0) {
@@ -106,7 +139,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         int cnt = 0, idx = head;
         for ( ; cnt < size - 1; cnt++) {
             System.out.print(items[idx] + " ");
-            idx = (idx + 1) % items.length;
+            idx = (idx + 1) % length;
         }
         System.out.println(items[idx]);
     }
@@ -116,8 +149,12 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         if (size == 0) {
             return null;
         }
+        if (size < length / 4 && length > MIN_LEN) {
+            resize(length / 2);
+            length /= 2;
+        }
         T item = items[head];
-        head = head == items.length - 1 ? 0 : head + 1;
+        head = head == length - 1 ? 0 : head + 1;
         size -= 1;
         return item;
     }
@@ -126,6 +163,10 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     public T removeLast() {
         if (size == 0) {
             return null;
+        }
+        if (size < length / 4 && length > MIN_LEN) {
+            resize(length / 2);
+            length /= 2;
         }
         int index = (head + size) % size;
         T item = items[index];

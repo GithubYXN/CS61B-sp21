@@ -1,5 +1,6 @@
 package deque;
 
+import edu.princeton.cs.algs4.StdRandom;
 import org.junit.Test;
 
 public class ArrayDequeTest {
@@ -7,15 +8,24 @@ public class ArrayDequeTest {
     @Test
     public void test() {
         ArrayDeque<Integer> dq = new ArrayDeque<>();
-        dq.addFirst(1);
-        dq.addLast(2);
-        dq.addLast(3);
-        dq.addLast(4);
-        dq.addLast(5);
 
-        dq.removeFirst();
-        System.out.println(dq.get(9));
+        int N = 50000;
 
-        dq.printDeque();
+        for (int i = 0; i < N; i++) {
+            int op = StdRandom.uniform(0, 5);
+            int ranVal = StdRandom.uniform(0, 1000);
+            if (op == 0) {
+                dq.addFirst(ranVal);
+            } else if (op == 1) {
+                dq.addLast(ranVal);
+            } else if (op == 2) {
+                dq.removeFirst();
+            } else if (op == 3) {
+                dq.removeLast();
+            } else if (op == 4) {
+                int ranIdx = StdRandom.uniform(0, dq.getLength());
+                dq.get(ranIdx);
+            }
+        }
     }
 }
