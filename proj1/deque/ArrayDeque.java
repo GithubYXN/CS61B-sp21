@@ -49,33 +49,22 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         if (o == this) {
             return true;
         }
-        if (o == null || o.getClass() != this.getClass()) {
+        if (!(o instanceof Deque)) {
             return false;
         }
-        ArrayDeque<T> other = (ArrayDeque<T>) o;
+        Deque<T> other = (Deque<T>) o;
         if (other.size() != this.size()) {
             return false;
         }
-        for (T item : this) {
-            if (!other.contains(item)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public boolean contains(T x) {
         for (int i = 0; i < size; i++) {
-            if (!items[i].equals(x)) {
-                return false;
-            }
+            if (!other.get(i).equals(this.get(i)));
         }
         return true;
     }
 
-    public int getLength() {
-        return length;
-    }
+//    public int getLength() {
+//        return length;
+//    }
 
     @Override
     public void addFirst(T item) {
@@ -115,18 +104,14 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         return size;
     }
 
-    public void resize(int capacity) {
+    private void resize(int capacity) {
         T[] a = (T[]) new Object[capacity];
         int idx = 0;
         int H = head;
-        try {
-            for (T item : this) {
-                a[idx++] = item;
-            }
-        } catch (Exception e) {
-            throw new ArrayIndexOutOfBoundsException();
-        }
 
+        for (T item : this) {
+            a[idx++] = item;
+        }
         items = a;
         head = 0;
     }
@@ -169,7 +154,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             resize(length / 2);
             length /= 2;
         }
-        int index = (head + size) % size;
+        int index = (head + size - 1) % length;
         T item = items[index];
         size -= 1;
         return item;
@@ -180,7 +165,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         if (index < 0 || index >= size) {
             return null;
         }
-        return items[(head + index) % size];
+        return items[(head + index) % length];
     }
 
 }

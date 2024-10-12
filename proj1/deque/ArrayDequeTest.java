@@ -25,7 +25,7 @@ public class ArrayDequeTest {
             } else if (op == 3) {
                 dq.removeLast();
             } else if (op == 4) {
-                int ranIdx = StdRandom.uniform(0, dq.getLength());
+                int ranIdx = StdRandom.uniform(0, 10000);
                 dq.get(ranIdx);
             }
         }
@@ -34,10 +34,13 @@ public class ArrayDequeTest {
 
     @Test
     public void test2() {
-
         ArrayDeque<Integer> dq = new ArrayDeque<>();
-        dq.addFirst(5);
-        assertFalse(dq.isEmpty());
 
+        dq.addFirst(0);
+        dq.addFirst(1);
+        dq.addFirst(2);
+        dq.addFirst(3);
+        dq.addFirst(4);
+        assertEquals((Integer) 0, dq.removeLast());
     }
 }

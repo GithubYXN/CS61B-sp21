@@ -4,10 +4,10 @@ import java.util.Iterator;
 
 public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
 
-    public class Node {
-        public T data;
-        public Node next;
-        public Node prev;
+    private class Node {
+        private T data;
+        private Node next;
+        private Node prev;
 
         public Node(T data) {
             this.data = data;
@@ -174,7 +174,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
             return null;
         }
         int cnt = 0;
-        for (Node cur = sentinel.next; cur != null; cur = cur.next) {
+        for (Node cur = sentinel.next; cur.next != sentinel.next; cur = cur.next) {
             if (cnt == index) {
                 return cur.data;
             }
@@ -187,29 +187,20 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         if (o == this) {
             return true;
         }
-        if (o == null || o.getClass() != this.getClass()) {
+        if (!(o instanceof Deque)) {
             return false;
         }
 
-        LinkedListDeque<T> other = (LinkedListDeque<T>) o;
+        Deque<T> other = (Deque<T>) o;
         if (other.size() != this.size()) {
             return false;
         }
-        for (T item : this) {
-            if (!other.contains(item)) {
+        for (int i = 0; i < size; i++) {
+            if (!this.get(i).equals(other.get(i))) {
                 return false;
             }
         }
         return true;
-    }
-
-    public boolean contains(T item) {
-        for (int i = 0; i < size; i++) {
-            if (item.equals(get(i))) {
-                return true;
-            }
-        }
-        return false;
     }
 
 }

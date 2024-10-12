@@ -142,11 +142,8 @@ public class LinkedListDequeTest {
     @Test
     public void addTest() {
         LinkedListDeque<String> L = new LinkedListDeque<>();
+        ArrayDeque<String> A = new ArrayDeque<>();
 
-        L.addLast("second");
-        L.addLast("third");
-        L.addFirst("first");
-
-        System.out.println(L.get(1));
+        assertTrue(A.equals(L));
     }
 }
