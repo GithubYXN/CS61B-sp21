@@ -25,7 +25,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         private int cnt;
         private int h;
 
-        public ArrayDequeIterator() {
+        ArrayDequeIterator() {
             cnt = 0;
             h = head;
         }
