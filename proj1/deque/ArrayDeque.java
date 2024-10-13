@@ -17,6 +17,13 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         length = items.length;
     }
 
+    public ArrayDeque(int capacity) {
+        items = (T[]) new Object[capacity];
+        size = 0;
+        head = -1;
+        length = capacity;
+    }
+
     public Iterator<T> iterator() {
         return new ArrayDequeIterator();
     }
