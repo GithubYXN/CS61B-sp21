@@ -1,6 +1,8 @@
 package bstmap;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
@@ -113,5 +115,18 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
     @Override
     public V remove(K key, V value) {
         throw new UnsupportedOperationException();
+    }
+
+    private void inorderTraversal(Node n) {
+        if (n == null) {
+            return;
+        }
+        inorderTraversal(n.left);
+        System.out.print(n.key + " ");
+        inorderTraversal(n.right);
+    }
+
+    public void printInOrder() {
+        inorderTraversal(root);
     }
 }
