@@ -1,8 +1,7 @@
 package bstmap;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
@@ -99,22 +98,105 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
 
     @Override
     public Iterator<K> iterator() {
-        throw new UnsupportedOperationException();
+        return new BSTIter();
+    }
+
+    public class BSTIter implements Iterator<K> {
+        private Object[] items;
+        private int idx = 0;
+
+        public BSTIter() {
+            items = new Object[size];
+            init(root);
+            idx = 0;
+        }
+
+        private void init(Node root) {
+            if (root == null) {
+                return;
+            }
+            init(root.left);
+            items[idx++] = root.key;
+            init(root.right);
+        }
+
+        public boolean hasNext() {
+            return idx < size;
+        }
+
+        public K next() {
+            return (K) items[idx++];
+        }
     }
 
     @Override
     public Set<K> keySet() {
-        throw new UnsupportedOperationException();
+        Set<K> set = new HashSet<>();
+        keySet(set, root);
+        return set;
+    }
+
+    private void keySet(Set<K> set, Node n) {
+        if (n == null) {
+            return;
+        }
+        keySet(set, n.left);
+        set.add(n.key);
+        keySet(set, n.right);
     }
 
     @Override
     public V remove(K key) {
-        throw new UnsupportedOperationException();
+        Node n = root.get(key);
+        if (n == null) {
+            return null;
+        }
+        root = remove(key, root);
+        size -= 1;
+        return n.value;
     }
 
     @Override
     public V remove(K key, V value) {
-        throw new UnsupportedOperationException();
+        Node n = root.get(key);
+        if (n == null || n.value != value) {
+            return null;
+        }
+        root = remove(key, root);
+        size -= 1;
+        return n.value;
+    }
+
+    private Node remove(K key, Node n) {
+        if (n == null) {
+            return null;
+        }
+        int cmp = key.compareTo(n.key);
+        if (cmp < 0) {
+            n.left = remove(key, n.left);
+        } else if (cmp > 0) {
+            n.right = remove(key, n.right);
+        } else {
+            if (n.left == null) {
+                return n.right;
+            } else if (n.right == null) {
+                return n.left;
+            } else {
+                Node leftMax = findLeftMax(n);
+                n.value = leftMax.value;
+                n.key = leftMax.key;
+                n.left = remove(leftMax.key, n.left);
+            }
+        }
+        return n;
+    }
+
+    private Node findLeftMax(Node root) {
+        Node maxNode = root.left;
+        while (maxNode.right != null) {
+            maxNode = maxNode.right;
+        }
+        return maxNode;
     }
 
     private void inorderTraversal(Node n) {
@@ -128,5 +210,6 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
 
     public void printInOrder() {
         inorderTraversal(root);
+        System.out.println();
     }
 }
