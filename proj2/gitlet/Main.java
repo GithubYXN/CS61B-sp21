@@ -1,5 +1,7 @@
 package gitlet;
 
+import static gitlet.RepositoryUtils.getHead;
+
 /** Driver class for Gitlet, a subset of the Git version-control system.
  *  @author yangx
  */
@@ -19,9 +21,6 @@ public class Main {
             case "init":
                 Repository.init();
                 break;
-            case "log":
-                Repository.log();
-                break;
             case "add":
                 Repository.add(args[1]);
                 break;
@@ -34,6 +33,27 @@ public class Main {
                 break;
             case "rm":
                 Repository.remove(args[1]);
+                break;
+            case "log":
+                Repository.log();
+                break;
+            case "global-log":
+                Repository.globalLog();
+                break;
+            case "find":
+                Repository.find(args[1]);
+                break;
+            case "status":
+                Repository.status();
+                break;
+            case "checkout":
+                if (args.length == 2) {
+                    Repository.checkout(args[1]);
+                } else if (args.length == 3) {
+                    Repository.checkout(getHead(), args[2]);
+                } else if (args.length == 4) {
+                    Repository.checkout(args[1], args[3]);
+                }
                 break;
         }
     }

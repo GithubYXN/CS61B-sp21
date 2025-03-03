@@ -3,6 +3,7 @@ package gitlet;
 import java.io.File;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.TreeMap;
 
@@ -26,7 +27,7 @@ public class Commit implements Serializable {
     private TreeMap<String, String> blobsMap;
 
     private final String format = "%1$ta %1$tb %1$td %1$tH:%1$tM:%1$tS %1$tY %1$tz";
-
+    private static final int PREFIX = 6;
 
     public Commit(String message, String parent, String secondParent, TreeMap<String, String> blobsMap) {
         this.message = message;
@@ -46,8 +47,20 @@ public class Commit implements Serializable {
 
     // Deserialize a commit using a commitID;
     public static Commit fromFile(String commitId) {
-        File commitFile = join(COMMIT_OBJECT_DIR, commitId);
-        return readObject(commitFile, Commit.class);
+        if (commitId.length() == PREFIX) {
+            List<String> commits = plainFilenamesIn(COMMIT_OBJECT_DIR);
+            for (String commit : commits) {
+                if (commit.substring(0, PREFIX).equals(commitId)) {
+                    File commitFile = join(COMMIT_OBJECT_DIR, commit);
+                    return readObject(commitFile, Commit.class);
+                }
+            }
+            // Not found.
+            return null;
+        } else {
+            File commitFile = join(COMMIT_OBJECT_DIR, commitId);
+            return readObject(commitFile, Commit.class);
+        }
     }
 
     // Getter and Setter function.

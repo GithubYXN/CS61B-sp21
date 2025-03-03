@@ -27,7 +27,7 @@ public class Blob {
         if (obj instanceof File) {
             // Check if the current commit version is the same as working version.
             File toAdd = join(ADD_DIR, name);
-            String currentVersion = getCurrentVersion(toAdd);
+            String currentVersion = getCurrentVersion(name);
             if (currentVersion != null && currentVersion.equals(sha1id)) {
                 if (toAdd.exists()) {
                     toAdd.delete();
