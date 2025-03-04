@@ -10,25 +10,24 @@ import static gitlet.RepositoryUtils.*;
 
 public class Log {
 
-    public static String branch = getCurrentBranch();
-    public static File logFile = join(LOG_DIR, branch);
+    private static String branch = getCurrentBranch();
+    private static File logFile = join(LOG_DIR, branch);
 
     public static void writeLog(Commit commit, String sh1id) {
-        String log = "===\n" +
-                "commit " + sh1id + "\n" +
-                "Date: " + commit.getTimestamp() + "\n" +
-                commit.getMessage() + "\n\n" +
-                readContentsAsString(logFile);
+        String log = "===\n"
+                + "commit " + sh1id + "\n"
+                + "Date: " + commit.getTimestamp() + "\n"
+                + commit.getMessage() + "\n\n"
+                + readContentsAsString(logFile);
 
         writeContents(logFile, log);
     }
 
-    public static void readLog() {
-        String log = readContentsAsString(logFile);
-        System.out.print(log);
+    public static String readLog() {
+        return readContentsAsString(logFile);
     }
 
-    public static void readGlobalLog() {
+    public static String readGlobalLog() {
         StringBuilder log = new StringBuilder();
         List<String> commits = plainFilenamesIn(COMMIT_OBJECT_DIR);
         for (String commitId : commits) {
@@ -37,6 +36,6 @@ public class Log {
                     .append("Date: ").append(c.getTimestamp()).append("\n")
                     .append(c.getMessage()).append("\n\n");
         }
-        System.out.println(log);
+        return log.toString();
     }
 }

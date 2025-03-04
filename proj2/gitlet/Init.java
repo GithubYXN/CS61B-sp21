@@ -12,7 +12,8 @@ public class Init {
 
     // Default branch and commit.
     public static final String DEFAULT_BRANCH = "master";
-    public static final Commit DEFAULT_COMMIT = new Commit("initial commit", null, null, new TreeMap<>());
+    public static final Commit DEFAULT_COMMIT = new Commit("initial commit",
+            null, null, new TreeMap<>());
 
     // The current HEAD point's position.
     public static final File HEAD = join(GITLET_DIR, "HEAD");

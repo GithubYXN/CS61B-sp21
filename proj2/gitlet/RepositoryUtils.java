@@ -6,9 +6,11 @@ import java.util.List;
 import java.util.TreeMap;
 
 import static gitlet.Init.*;
+import static gitlet.Repository.CWD;
 import static gitlet.Utils.*;
 
 public class RepositoryUtils {
+    public static final String NO_COMMIT = "no commit";
 
     // Get the HEAD point(sh1id).
     public static String getHead() {
@@ -40,10 +42,12 @@ public class RepositoryUtils {
     public static String getDesignatedVersion(String commitId, String filename) {
         Commit designatedCommit = Commit.fromFile(commitId);
         if (designatedCommit == null) {
-            throw error("No commit with that id exists.");
+            System.out.println("No commit with that id exists.");
+            return NO_COMMIT;
+        } else {
+            TreeMap<String, String> blobsMap = designatedCommit.getBlobsMap();
+            return blobsMap.get(filename);
         }
-        TreeMap<String, String> blobsMap = designatedCommit.getBlobsMap();
-        return blobsMap.get(filename);
     }
 
     // Get the current version of file f.
@@ -95,11 +99,12 @@ public class RepositoryUtils {
         System.out.println();
     }
 
-    // Get the files that tracked in a but are not present in b which will be delete.
-    public static List<String> getToDelete(TreeMap<String, String> a, TreeMap<String, String> b) {
+    // Get the files that tracked in a but are not present in b which will be deleted.
+    public static List<String> getToDelete(TreeMap<String, String> current,
+                                                        TreeMap<String, String> checkout) {
         List<String> toDelete = new ArrayList<>();
-        for (String file : a.keySet()) {
-            if (!b.containsKey(file)) {
+        for (String file : current.keySet()) {
+            if (!checkout.containsKey(file)) {
                 toDelete.add(file);
             }
         }
@@ -107,8 +112,16 @@ public class RepositoryUtils {
     }
 
     // Get the files that untracked in a and are present in b.
-    public static List<String> getUntracked(TreeMap<String, String> a, TreeMap<String, String> b) {
-        return getToDelete(b, a);
+    public static List<String> getUntracked(TreeMap<String, String> current,
+                                                          TreeMap<String, String> checkout) {
+        List<String> workingFiles = plainFilenamesIn(CWD);
+        List<String> untracked = new ArrayList<>();
+        for (String file : workingFiles) {
+            if (!current.containsKey(file) && checkout.containsKey(file)) {
+                untracked.add(file);
+            }
+        }
+        return untracked;
     }
 
 }

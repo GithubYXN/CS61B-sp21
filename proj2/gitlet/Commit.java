@@ -17,7 +17,8 @@ import static gitlet.Utils.*;
 public class Commit implements Serializable {
 
     /**
-     *  A Commit consists of log message, parent, second parent(for merge), timestamp and a mapping of file names to blobs.
+     *  A Commit consists of log message, parent, second parent(for merge),
+     *  timestamp and a mapping of file names to blobs.
      */
 
     private String message;
@@ -27,9 +28,10 @@ public class Commit implements Serializable {
     private TreeMap<String, String> blobsMap;
 
     private final String format = "%1$ta %1$tb %1$td %1$tH:%1$tM:%1$tS %1$tY %1$tz";
-    private static final int PREFIX = 6;
+    private static final int FULL_COMMIT_LEN = 40;
 
-    public Commit(String message, String parent, String secondParent, TreeMap<String, String> blobsMap) {
+    public Commit(String message, String parent,
+                  String secondParent, TreeMap<String, String> blobsMap) {
         this.message = message;
         this.parent = parent;
         this.secondParent = secondParent;
@@ -47,10 +49,11 @@ public class Commit implements Serializable {
 
     // Deserialize a commit using a commitID;
     public static Commit fromFile(String commitId) {
-        if (commitId.length() == PREFIX) {
+        int len = commitId.length();
+        if (len != FULL_COMMIT_LEN) {
             List<String> commits = plainFilenamesIn(COMMIT_OBJECT_DIR);
             for (String commit : commits) {
-                if (commit.substring(0, PREFIX).equals(commitId)) {
+                if (commit.substring(0, len).equals(commitId)) {
                     File commitFile = join(COMMIT_OBJECT_DIR, commit);
                     return readObject(commitFile, Commit.class);
                 }
