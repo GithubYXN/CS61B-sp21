@@ -10,21 +10,21 @@ import static gitlet.RepositoryUtils.*;
 
 public class Log {
 
-    private static String branch = getCurrentBranch();
-    private static File logFile = join(LOG_DIR, branch);
+    private static final String BRANCH = getCurrentBranch();
+    private static final File LOGFILE = join(LOG_DIR, BRANCH);
 
     public static void writeLog(Commit commit, String sh1id) {
         String log = "===\n"
                 + "commit " + sh1id + "\n"
                 + "Date: " + commit.getTimestamp() + "\n"
                 + commit.getMessage() + "\n\n"
-                + readContentsAsString(logFile);
+                + readContentsAsString(LOGFILE);
 
-        writeContents(logFile, log);
+        writeContents(LOGFILE, log);
     }
 
     public static String readLog() {
-        return readContentsAsString(logFile);
+        return readContentsAsString(LOGFILE);
     }
 
     public static String readGlobalLog() {

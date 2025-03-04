@@ -7,10 +7,10 @@ import java.util.TreeMap;
 
 import static gitlet.Init.*;
 import static gitlet.Repository.CWD;
+import static gitlet.Repository.GITLET_DIR;
 import static gitlet.Utils.*;
 
 public class RepositoryUtils {
-    public static final String NO_COMMIT = "no commit";
 
     // Get the HEAD point(sh1id).
     public static String getHead() {
@@ -43,7 +43,7 @@ public class RepositoryUtils {
         Commit designatedCommit = Commit.fromFile(commitId);
         if (designatedCommit == null) {
             System.out.println("No commit with that id exists.");
-            return NO_COMMIT;
+            return "no commit";
         } else {
             TreeMap<String, String> blobsMap = designatedCommit.getBlobsMap();
             return blobsMap.get(filename);
@@ -122,6 +122,11 @@ public class RepositoryUtils {
             }
         }
         return untracked;
+    }
+
+    // Check if the repository had been initialized.
+    public static boolean repositoryExsists() {
+        return GITLET_DIR.exists();
     }
 
 }

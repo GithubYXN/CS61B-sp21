@@ -62,6 +62,9 @@ public class Commit implements Serializable {
             return null;
         } else {
             File commitFile = join(COMMIT_OBJECT_DIR, commitId);
+            if (!commitFile.exists()) {
+                return null;
+            }
             return readObject(commitFile, Commit.class);
         }
     }

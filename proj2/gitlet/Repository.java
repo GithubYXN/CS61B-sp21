@@ -107,7 +107,7 @@ public class Repository {
             File toStage = join(REMOVE_DIR, filename);
             File toRemove = join(CWD, filename);
             String currentVersion = getCurrentVersion(filename);
-            if (currentVersion != null && toRemove.exists()) {
+            if (currentVersion != null) {
                 writeContents(toStage, currentVersion);
                 restrictedDelete(toRemove);
             } else {
@@ -154,11 +154,10 @@ public class Repository {
         String designatedVersion = getDesignatedVersion(commitId, filename);
         if (designatedVersion == null) {
             System.out.println("File does not exist in that commit.");
+        } else if (designatedVersion.equals("no commit")) {
+            return;
         } else {
             File designated = join(FILE_OBJECT_DIR, designatedVersion);
-            if (!designated.exists()) {
-                return;
-            }
             File toCheckout = join(CWD, filename);
             writeContents(toCheckout, readContentsAsString(designated));
         }
