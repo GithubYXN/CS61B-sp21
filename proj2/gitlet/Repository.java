@@ -173,4 +173,26 @@ public class Repository {
             writeContents(HEAD, head);
         }
     }
+
+    // Create a new branch with the given name.
+    public static void branch(String branch) {
+        File newBranch = join(HEAD_DIR, branch);
+        if (newBranch.exists()) {
+            throw error("A branch with that name already exists.");
+        }
+        writeContents(newBranch, getHead());
+    }
+
+    // Remove the branch with the given name.
+    public static void rmBranch(String branch) {
+        File toRemoveBranch = join(HEAD_DIR, branch);
+        if (!toRemoveBranch.exists()) {
+            throw error("A branch with that name does not exist.");
+        }
+        String currentBranch = getCurrentBranch();
+        if (currentBranch.equals(branch)) {
+            throw error("Cannot remove the current branch.");
+        }
+        toRemoveBranch.delete();
+    }
 }
