@@ -147,15 +147,14 @@ public class Repository {
 
         File branchHead = join(HEAD_DIR, branch);
         if (!branchHead.exists()) {
-            System.out.println("No such branch exists.");
+            throw error("No such branch exists.");
         } else if (branch.equals(getCurrentBranch())) {
-            System.out.println("No need to checkout the current branch.");
+            throw error("No need to checkout the current branch.");
         } else {
             String head = readContentsAsString(branchHead);
             TreeMap<String, String> headMap = getTreeMap(head);
             if (!getUntracked(currentMap, headMap).isEmpty()) {
-                System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
-                System.exit(0);
+                throw error("There is an untracked file in the way; delete it, or add and commit it first.");
             }
             List<String> toDelete = getToDelete(currentMap, headMap);
             for (String filename : headMap.keySet()) {
