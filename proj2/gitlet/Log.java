@@ -23,6 +23,18 @@ public class Log {
         writeContents(LOGFILE, log);
     }
 
+    public static void resetLog(String commitId) {
+        Commit c = Commit.fromFile(commitId);
+        StringBuilder log = new StringBuilder();
+        while (c != null) {
+            log.append("===\n" + "commit ").append(commitId).append("\n")
+                    .append("Date: ").append(c.getTimestamp()).append("\n")
+                    .append(c.getMessage()).append("\n\n");
+            c = Commit.fromFile(c.getParent());
+        }
+        writeContents(LOGFILE, log.toString());
+    }
+
     public static String readLog() {
         return readContentsAsString(LOGFILE);
     }

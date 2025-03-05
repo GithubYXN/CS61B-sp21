@@ -49,6 +49,9 @@ public class Commit implements Serializable {
 
     // Deserialize a commit using a commitID;
     public static Commit fromFile(String commitId) {
+        if (commitId == null) {
+            return null;
+        }
         int len = commitId.length();
         if (len != FULL_COMMIT_LEN) {
             List<String> commits = plainFilenamesIn(COMMIT_OBJECT_DIR);

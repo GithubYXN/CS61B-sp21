@@ -127,6 +127,15 @@ public class Main {
                     Repository.rmBranch(args[1]);
                 }
                 break;
+            case "reset":
+                if (args.length != 2) {
+                    System.out.println("Incorrect operands.");
+                } else if (!RepositoryUtils.repositoryExsists()) {
+                    System.out.println("Not in an initialized Gitlet directory.");
+                } else {
+                    Repository.reset(args[1]);
+                }
+                break;
             default:
                 System.out.println("No command with that name exists.");
         }

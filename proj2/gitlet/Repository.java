@@ -68,16 +68,20 @@ public class Repository {
                     // persistence
                     Blob fileBlob = new Blob(join(CWD, filename));
                     fileBlob.save();
-                    //delete
-                    file.delete();
                 }
             }
+
             if (removeStagingFiles != null && !removeStagingFiles.isEmpty()) {
                 for (String filename : removeStagingFiles) {
                     File file = join(REMOVE_DIR, filename);
-                    file.delete();
+                    String fileHash = readContentsAsString(file);
+                    blobsMap.remove(filename);
                 }
             }
+
+            // clear staging area.
+            clearStagingArea();
+
             toCommit.setBlobsMap(blobsMap);
 
             // Persistence commit.
@@ -119,13 +123,13 @@ public class Repository {
     // Print the logs.
     public static void log() {
         String log = readLog();
-        System.out.println(log);
+        System.out.print(log);
     }
 
     // Print the global-log.
     public static void globalLog() {
         String globalLog = readGlobalLog();
-        System.out.println(globalLog);
+        System.out.print(globalLog);
     }
 
     // Find commit ids with the given message.
@@ -177,26 +181,32 @@ public class Repository {
             // If two branch are not at the same head.
             if (!currentHead.equals(head)) {
                 TreeMap<String, String> headMap = getTreeMap(head);
-                if (!getUntracked(currentMap, headMap).isEmpty()) {
-                    System.out.println("There is an untracked file in the way;"
-                            + " delete it, or add and commit it first.");
-                    System.exit(0);
-                }
-                List<String> toDelete = getToDelete(currentMap, headMap);
-                for (String filename : headMap.keySet()) {
-                    File file = join(FILE_OBJECT_DIR, headMap.get(filename));
-                    File toOverwrite = join(CWD, filename);
-                    writeContents(toOverwrite, readContentsAsString(file));
-                }
-
-                for (String filename : toDelete) {
-                    File f = join(CWD, filename);
-                    f.delete();
-                }
+                checkoutWithCommit(head, currentMap, headMap);
             }
 
             // Set the HEAD to new head.
             writeContents(HEAD, branchHead.getAbsolutePath());
+        }
+    }
+
+    private static void checkoutWithCommit(String commitId,
+                                    TreeMap<String, String> current,
+                                    TreeMap<String, String> checkout) {
+        if (!getUntracked(current, checkout).isEmpty()) {
+            System.out.println("There is an untracked file in the way;"
+                    + " delete it, or add and commit it first.");
+            System.exit(0);
+        }
+        List<String> toDelete = getToDelete(current, checkout);
+        for (String filename : checkout.keySet()) {
+            File file = join(FILE_OBJECT_DIR, checkout.get(filename));
+            File toOverwrite = join(CWD, filename);
+            writeContents(toOverwrite, readContentsAsString(file));
+        }
+
+        for (String filename : toDelete) {
+            File f = join(CWD, filename);
+            f.delete();
         }
     }
 
@@ -226,6 +236,30 @@ public class Repository {
                 System.exit(0);
             }
             toRemoveBranch.delete();
+        }
+    }
+
+    // Reset the current head to given commit.
+    public static void reset(String commitId) {
+        Commit givenCommit = Commit.fromFile(commitId);
+        if (givenCommit == null) {
+            System.out.println("No commit with that id exists.");
+        } else {
+            // checkout
+            TreeMap<String, String> givenCommitMap = getTreeMap(commitId);
+            TreeMap<String, String> currentMap = getTreeMap(getHead());
+            checkoutWithCommit(commitId, currentMap, givenCommitMap);
+
+            // set head to given commit
+            String branch = getCurrentBranch();
+            File branchHead = join(HEAD_DIR, branch);
+            writeContents(branchHead, commitId);
+
+            // clear staging area.
+            clearStagingArea();
+
+            // overwrite log.
+            resetLog(commitId);
         }
     }
 }
