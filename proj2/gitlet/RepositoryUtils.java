@@ -1,9 +1,7 @@
 package gitlet;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TreeMap;
+import java.util.*;
 
 import static gitlet.Init.*;
 import static gitlet.Repository.*;
@@ -190,28 +188,55 @@ public class RepositoryUtils {
     }
 
     // Get all commits in given branch.
-    public static List<String> getAllCommits(String branch) {
-        List<String> allCommits = new ArrayList<>();
+    public static Queue<List<String>> getAllCommits(String branch) {
+        Queue<List<String>> q = new LinkedList<>();
+        Queue<List<String>> allCommits = new LinkedList<>();
+
         File branchHead = join(HEAD_DIR, branch);
         String headCommitId = readContentsAsString(branchHead);
-        Commit c = Commit.fromFile(headCommitId);
-        allCommits.add(headCommitId);
-        while (c.getParent() != null) {
-            allCommits.add(c.getParent());
-            c = Commit.fromFile(c.getParent());
+
+        q.add(List.of(headCommitId));
+        allCommits.add(List.of(headCommitId));
+        while (!q.isEmpty()) {
+            List<String> commits = q.poll();
+            List<String> parents = new ArrayList<>();
+            for (String commitId : commits) {
+                Commit c = Commit.fromFile(commitId);
+                String firstParent = c.getParent();
+                String secondParent = c.getSecondParent();
+                if (firstParent != null) {
+                    parents.add(firstParent);
+                }
+                if (secondParent != null) {
+                    parents.add(secondParent);
+                }
+                if (!parents.isEmpty()) {
+                    q.add(parents);
+                    allCommits.add(parents);
+                }
+            }
         }
         return allCommits;
     }
 
     // Get split point.
     public static String getSplitPoint(String currentBranch, String givenBranch) {
-        List<String> currentCommits = getAllCommits(currentBranch);
-        List<String> givenCommits = getAllCommits(givenBranch);
-        for (String commit : currentCommits) {
-            if (givenCommits.contains(commit)) {
-                return commit;
+        Queue<List<String>> currentCommits = getAllCommits(currentBranch);
+        Queue<List<String>> given = getAllCommits(givenBranch);
+        List<String> givenCommits = new ArrayList<>();
+        while (!given.isEmpty()) {
+            List<String> c = given.poll();
+            givenCommits.addAll(c);
+        }
+        while (!currentCommits.isEmpty()) {
+            List<String> commits = currentCommits.poll();
+            for (String commit : commits) {
+                if (givenCommits.contains(commit)) {
+                    return commit;
+                }
             }
         }
+
         return null;
     }
 
@@ -234,8 +259,8 @@ public class RepositoryUtils {
 
     public static void writeMergeConflict(String currentContent, String branchContent,
                                           File f, String filename) {
-        String conflictMessage = "<<<<<<< HEAD\n" + currentContent +"\n"
-                + "=======\n" + branchContent + ">>>>>>>";
+        String conflictMessage = "<<<<<<< HEAD\n" + currentContent
+                + "=======\n" + branchContent + ">>>>>>>\n";
         writeContents(f, conflictMessage);
         add(filename);
     }
