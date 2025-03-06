@@ -145,6 +145,33 @@ public class Main {
                     Repository.merge(args[1]);
                 }
                 break;
+            case "add-remote":
+                if (args.length != 3) {
+                    System.out.println("Incorrect operands.");
+                } else if (!RepositoryUtils.repositoryExsists()) {
+                    System.out.println("Not in an initialized Gitlet directory.");
+                } else {
+                    Repository.addRemote(args[1], args[2]);
+                }
+                break;
+            case "rm-remote":
+                if (args.length != 2) {
+                    System.out.println("Incorrect operands.");
+                } else if (!RepositoryUtils.repositoryExsists()) {
+                    System.out.println("Not in an initialized Gitlet directory.");
+                } else {
+                    Repository.removeRemote(args[1]);
+                }
+                break;
+            case "push":
+                if (args.length != 3) {
+                    System.out.println("Incorrect operands.");
+                } else if (!RepositoryUtils.repositoryExsists()) {
+                    System.out.println("Not in an initialized Gitlet directory.");
+                } else {
+                    Repository.push(args[1], args[2]);
+                }
+                break;
             default:
                 System.out.println("No command with that name exists.");
         }

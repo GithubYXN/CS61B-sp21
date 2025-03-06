@@ -34,6 +34,8 @@ public class Init {
     // Master branch.
     public static final File DEFAULT_HEAD = join(HEAD_DIR, DEFAULT_BRANCH);
     public static final File DEFAULT_LOG = join(LOG_DIR, DEFAULT_BRANCH);
+    // Remote repository
+    public static final File REMOTE_DIR = join(REF_DIR, "remotes");
 
     public static void setup() {
         // make directories
@@ -46,6 +48,7 @@ public class Init {
         STAGING_DIR.mkdirs();
         ADD_DIR.mkdirs();
         REMOVE_DIR.mkdirs();
+        REMOTE_DIR.mkdirs();
 
         // make HEAD files
         try {

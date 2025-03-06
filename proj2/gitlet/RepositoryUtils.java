@@ -221,15 +221,10 @@ public class RepositoryUtils {
 
     // Get split point.
     public static String getSplitPoint(String currentBranch, String givenBranch) {
-        Queue<List<String>> currentCommits = getAllCommits(currentBranch);
-        Queue<List<String>> given = getAllCommits(givenBranch);
-        List<String> givenCommits = new ArrayList<>();
-        while (!given.isEmpty()) {
-            List<String> c = given.poll();
-            givenCommits.addAll(c);
-        }
-        while (!currentCommits.isEmpty()) {
-            List<String> commits = currentCommits.poll();
+        Queue<List<String>> localCommits = getAllCommits(currentBranch);
+        List<String> givenCommits = queueToList(getAllCommits(givenBranch));
+        while (!localCommits.isEmpty()) {
+            List<String> commits = localCommits.poll();
             for (String commit : commits) {
                 if (givenCommits.contains(commit)) {
                     return commit;
@@ -238,6 +233,15 @@ public class RepositoryUtils {
         }
 
         return null;
+    }
+
+    public static List<String> queueToList(Queue<List<String>> q) {
+        List<String> res = new ArrayList<>();
+        while (!q.isEmpty()) {
+            List<String> l = q.poll();
+            res.addAll(l);
+        }
+        return res;
     }
 
     // Check whether there is a merge conflict.
@@ -263,5 +267,46 @@ public class RepositoryUtils {
                 + "=======\n" + branchContent + ">>>>>>>\n";
         writeContents(f, conflictMessage);
         add(filename);
+    }
+
+    public static File getRemoteDirectory(String remoteName) {
+        String remoteDir = readContentsAsString(join(REMOTE_DIR, remoteName));
+        return new File(remoteDir);
+    }
+    // Check if remote branch's head is in the history of the current local head.
+    public static boolean isHistory(File remoteDir, String remoteBranchName) {
+        File remoteBranch = join(remoteDir, "\\refs\\heads\\" + remoteBranchName);
+        if (!remoteBranch.exists()) {
+            return true;
+        }
+        String remoteBranchCommitId = readContentsAsString(remoteBranch);
+        Queue<List<String>> localCommitsQueue = getAllCommits(getCurrentBranch());
+        List<String> localCommits = queueToList(localCommitsQueue);
+        return localCommits.contains(remoteBranchCommitId);
+    }
+
+    public static void pushCommitsTo(File remoteCommitDir) {
+        List<String> remoteCommits = plainFilenamesIn(remoteCommitDir);
+        List<String> localCommits = queueToList(getAllCommits(getCurrentBranch()));
+        for (String localCommit : localCommits) {
+            if (!remoteCommits.contains(localCommit)) {
+                File commit = join(remoteCommitDir, localCommit);
+                byte[] contents = readContents(join(COMMIT_OBJECT_DIR, localCommit));
+                writeContents(commit, contents);
+            }
+        }
+    }
+
+    public static void pushFilesTo(File remoteFileDir) {
+        List<String> remoteFiles = plainFilenamesIn(remoteFileDir);
+        TreeMap<String, String> localTrackedMap = getTreeMap(getHead());
+        List<String> localFiles = List.copyOf(localTrackedMap.keySet());
+        for (String localFile : localFiles) {
+            if (!remoteFiles.contains(localFile)) {
+                File file = join(remoteFileDir, localFile);
+                byte[] contents = readContents(join(FILE_OBJECT_DIR, localFile));
+                writeContents(file, contents);
+            }
+        }
     }
 }

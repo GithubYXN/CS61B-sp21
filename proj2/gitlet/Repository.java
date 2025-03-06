@@ -183,7 +183,7 @@ public class Repository {
             // If two branch are not at the same head.
             if (!currentHead.equals(head)) {
                 TreeMap<String, String> headMap = getTreeMap(head);
-                checkoutWithCommit(head, currentMap, headMap);
+                checkoutWith(currentMap, headMap);
             }
 
             // Set the HEAD to new head.
@@ -191,9 +191,8 @@ public class Repository {
         }
     }
 
-    private static void checkoutWithCommit(String commitId,
-                                    TreeMap<String, String> current,
-                                    TreeMap<String, String> checkout) {
+    private static void checkoutWith(TreeMap<String, String> current,
+                                           TreeMap<String, String> checkout) {
         if (!getUntracked(current, checkout).isEmpty()) {
             System.out.println("There is an untracked file in the way;"
                     + " delete it, or add and commit it first.");
@@ -250,7 +249,7 @@ public class Repository {
             // checkout
             TreeMap<String, String> givenCommitMap = getTreeMap(commitId);
             TreeMap<String, String> currentMap = getTreeMap(getHead());
-            checkoutWithCommit(commitId, currentMap, givenCommitMap);
+            checkoutWith(currentMap, givenCommitMap);
 
             // set head to given commit
             String branch = getCurrentBranch();
@@ -344,6 +343,56 @@ public class Repository {
                     System.out.println("Encountered a merge conflict.");
                 }
             }
+        }
+    }
+
+    // Remote commands below;
+
+    public static void addRemote(String remoteName, String remoteDirectory) {
+        File remote = join(REMOTE_DIR, remoteName);
+        if (remote.exists()) {
+            System.out.println("A remote with that name already exists.");
+        } else {
+            String directory = remoteDirectory.replace("/", File.separator);
+            writeContents(remote, directory);
+        }
+    }
+
+    public static void removeRemote(String remoteName) {
+        File remote = join(REMOTE_DIR, remoteName);
+        if (!remote.exists()) {
+            System.out.println("A remote with that name does not exist.");
+        }
+        restrictedDelete(remote);
+    }
+
+    public static void push(String remoteName, String remoteBranchName) {
+        File remoteDir = getRemoteDirectory(remoteName);
+        if (!remoteDir.exists()) {
+            System.out.println("Remote directory not found.");
+        } else if (!isHistory(remoteDir, remoteBranchName)) {
+            System.out.println("Please pull down remote changes before pushing.");
+        } else {
+            File remoteCommitDir = join(remoteDir, "\\objects\\commit");
+            pushCommitsTo(remoteCommitDir);
+
+            File remoteFileDir = join(remoteDir, "\\objects\\file");
+            pushFilesTo(remoteFileDir);
+
+            TreeMap<String, String> headMap = getTreeMap(getHead());
+            for (String filename : headMap.keySet()) {
+                File f = join(remoteDir, filename);
+                writeContents(f, (Object) readContents(join(FILE_OBJECT_DIR, headMap.get(filename))));
+            }
+
+            File remoteLog = join(remoteDir, "\\logs\\" + remoteBranchName);
+            String localLog = readLog();
+            writeContents(remoteLog, localLog);
+
+            File remoteBranchHead = join(remoteDir, "\\refs\\heads\\" + remoteBranchName);
+            writeContents(remoteBranchHead, getHead());
+            File remoteHead = join(remoteDir, "HEAD");
+            writeContents(remoteHead, remoteBranchHead.getAbsolutePath());
         }
     }
 
