@@ -50,10 +50,14 @@ public class Repository {
 
     // Make a commit.
     public static void commit(String message) {
+        commit(message, null);
+    }
+
+    private static void commit(String message, String secondParentId) {
         String parentId = getHead();
         Commit parentCommit = Commit.fromFile(parentId);
         TreeMap<String, String> blobsMap = parentCommit.getBlobsMap();
-        Commit toCommit = new Commit(message, parentId, null, blobsMap);
+        Commit toCommit = new Commit(message, parentId, secondParentId, blobsMap);
         List<String> addStagingFiles = plainFilenamesIn(ADD_DIR);
         List<String> removeStagingFiles = plainFilenamesIn(REMOVE_DIR);
         if (addStagingFiles != null && !addStagingFiles.isEmpty()
@@ -73,8 +77,6 @@ public class Repository {
 
             if (removeStagingFiles != null && !removeStagingFiles.isEmpty()) {
                 for (String filename : removeStagingFiles) {
-                    File file = join(REMOVE_DIR, filename);
-                    String fileHash = readContentsAsString(file);
                     blobsMap.remove(filename);
                 }
             }
@@ -262,4 +264,87 @@ public class Repository {
             resetLog(commitId);
         }
     }
+
+    // Merge two branches.
+    public static void merge(String branch) {
+        if (!join(HEAD_DIR, branch).exists()) {
+            System.out.println("A branch with that name does not exist.");
+            return;
+        }
+        String splitPoint = getSplitPoint(getCurrentBranch(), branch);
+        String branchHead = readContentsAsString(join(HEAD_DIR, branch));
+        String currentHead = getHead();
+
+        if (branch.equals(getCurrentBranch())) {
+            System.out.println("Cannot merge a branch with itself.");
+        } else if (!getStagedFiles().isEmpty() || !getRemovedFiles().isEmpty()) {
+            System.out.println("You have uncommitted changes.");
+        } else if (!getUntracked(getTreeMap(currentHead), getTreeMap(branchHead)).isEmpty()) {
+            System.out.println("There is an untracked file in the way;"
+                    + " delete it, or add and commit it first.");
+        } else {
+            if (branchHead.equals(splitPoint)) {
+                System.out.println("Given branch is an ancestor of the current branch.");
+            } else if (currentHead.equals(splitPoint)) {
+                checkout(branch);
+                System.out.println("Current branch fast-forwarded.");
+            } else {
+                TreeMap<String, String> branchHeadMap = getTreeMap(branchHead);
+                TreeMap<String, String> currentHeadMap = getTreeMap(currentHead);
+                TreeMap<String, String> splitPointMap = getTreeMap(splitPoint);
+                boolean isConflict = false;
+
+                for (String filename : branchHeadMap.keySet()) {
+                    File f = join(CWD, filename);
+                    String currentFile = currentHeadMap.get(filename);
+                    String branchFile = branchHeadMap.get(filename);
+                    String splitPointFile = splitPointMap.get(filename);
+                    if (splitPointFile != null && !branchFile.equals(splitPointFile)
+                            && currentFile != null && currentFile.equals(splitPointFile)) {
+                        writeContents(f, readContents(join(FILE_OBJECT_DIR, branchFile)));
+                        add(filename);
+                    } else if (!splitPointMap.containsKey(filename)
+                            && !currentHeadMap.containsKey(filename)) {
+                        checkout(branchHead, filename);
+                        add(filename);
+                    } else if (hasMergeConflict(splitPointMap,
+                            currentFile, branchFile, splitPointFile, filename)) {
+                        String currentContent = readContentsAsString(
+                                join(FILE_OBJECT_DIR, currentFile));
+                        String branchContent = readContentsAsString(
+                                join(FILE_OBJECT_DIR, branchFile));
+
+                        writeMergeConflict(currentContent, branchContent, f, filename);
+                        isConflict = true;
+                    }
+                }
+                for (String filename : splitPointMap.keySet()) {
+                    String currentFile = currentHeadMap.get(filename);
+                    String splitPointFile = splitPointMap.get(filename);
+                    String branchFile = branchHeadMap.get(filename);
+                    if (currentFile != null && currentFile.equals(splitPointFile)
+                            && !branchHeadMap.containsKey(filename)) {
+                        remove(filename);
+                    } else if (hasMergeConflict(splitPointMap,
+                            currentFile, branchFile, splitPointFile, filename)) {
+                        String currentContent = currentFile == null ? ""
+                                : readContentsAsString(join(FILE_OBJECT_DIR, currentFile));
+                        String branchContent = branchFile == null ? ""
+                                : readContentsAsString(join(FILE_OBJECT_DIR, branchFile));
+
+                        writeMergeConflict(currentContent, branchContent,
+                                join(CWD, filename), filename);
+                        isConflict = true;
+                    }
+                }
+
+                String message = "Merged " + branch + " into " + getCurrentBranch() + ".";
+                commit(message, branchHead);
+                if (isConflict) {
+                    System.out.println("Encountered a merge conflict.");
+                }
+            }
+        }
+    }
+
 }

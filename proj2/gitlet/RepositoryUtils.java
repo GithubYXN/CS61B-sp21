@@ -6,8 +6,7 @@ import java.util.List;
 import java.util.TreeMap;
 
 import static gitlet.Init.*;
-import static gitlet.Repository.CWD;
-import static gitlet.Repository.GITLET_DIR;
+import static gitlet.Repository.*;
 import static gitlet.Utils.*;
 
 public class RepositoryUtils {
@@ -15,9 +14,6 @@ public class RepositoryUtils {
     // Get the HEAD point(sh1id).
     public static String getHead() {
         File currentHead = new File(readContentsAsString(HEAD));
-        if (!currentHead.exists()) {
-            throw error("Could not find HEAD file");
-        }
         return readContentsAsString(currentHead);
     }
 
@@ -107,7 +103,7 @@ public class RepositoryUtils {
         System.out.println();
     }
 
-    // Get the files that tracked in a but are not present in b which will be deleted.
+    // Get the files that tracked in current but are not present in checkout which will be deleted.
     public static List<String> getToDelete(TreeMap<String, String> current,
                                                         TreeMap<String, String> checkout) {
         List<String> toDelete = new ArrayList<>();
@@ -119,7 +115,7 @@ public class RepositoryUtils {
         return toDelete;
     }
 
-    // Get the files that untracked in a and are present in b.
+    // Get the files that untracked in current and are present in checkout.
     public static List<String> getUntracked(TreeMap<String, String> current,
                                                           TreeMap<String, String> checkout) {
         List<String> workingFiles = plainFilenamesIn(CWD);
@@ -154,14 +150,15 @@ public class RepositoryUtils {
             File f = join(CWD, filename);
             File addF = join(ADD_DIR, filename);
             File removeF = join(REMOVE_DIR, filename);
-            if ((!f.exists() && !removeF.exists())
+            String currentTrackedF = currentTracked.get(filename);
+            if ((!removeF.exists() && !f.exists())
                     || (addF.exists() && !f.exists())) {
                 modifiedNotStaged.add(filename + " (deleted)");
             }
             if (f.exists()) {
                 Blob b = new Blob(f);
-                if ((!addF.exists() && !b.getSha1id().equals(currentTracked.get(filename)))
-                        || (addF.exists() && !b.getSha1id().equals(currentTracked.get(filename)))) {
+                if ((!addF.exists() && !b.getSha1id().equals(currentTrackedF))
+                        || (addF.exists() && !b.getSha1id().equals(currentTrackedF))) {
                     modifiedNotStaged.add(filename + " (modified)");
                 }
             }
@@ -192,4 +189,54 @@ public class RepositoryUtils {
         }
     }
 
+    // Get all commits in given branch.
+    public static List<String> getAllCommits(String branch) {
+        List<String> allCommits = new ArrayList<>();
+        File branchHead = join(HEAD_DIR, branch);
+        String headCommitId = readContentsAsString(branchHead);
+        Commit c = Commit.fromFile(headCommitId);
+        allCommits.add(headCommitId);
+        while (c.getParent() != null) {
+            allCommits.add(c.getParent());
+            c = Commit.fromFile(c.getParent());
+        }
+        return allCommits;
+    }
+
+    // Get split point.
+    public static String getSplitPoint(String currentBranch, String givenBranch) {
+        List<String> currentCommits = getAllCommits(currentBranch);
+        List<String> givenCommits = getAllCommits(givenBranch);
+        for (String commit : currentCommits) {
+            if (givenCommits.contains(commit)) {
+                return commit;
+            }
+        }
+        return null;
+    }
+
+    // Check whether there is a merge conflict.
+    public static boolean hasMergeConflict(TreeMap<String, String> splitPointMap,
+                                             String currentFile, String branchFile,
+                                             String splitPointFile, String filename) {
+        return (splitPointMap.containsKey(filename)
+                && (currentFile != null && branchFile == null
+                && !currentFile.equals(splitPointFile)
+                || (currentFile == null && branchFile != null
+                && !branchFile.equals(splitPointFile))))
+                || ((currentFile != null && splitPointMap.containsKey(filename)
+                && !currentFile.equals(splitPointFile)
+                && !branchFile.equals(splitPointFile)
+                && !branchFile.equals(currentFile))
+                || (currentFile != null && !splitPointMap.containsKey(filename)
+                && !branchFile.equals(currentFile)));
+    }
+
+    public static void writeMergeConflict(String currentContent, String branchContent,
+                                          File f, String filename) {
+        String conflictMessage = "<<<<<<< HEAD\n" + currentContent +"\n"
+                + "=======\n" + branchContent + ">>>>>>>";
+        writeContents(f, conflictMessage);
+        add(filename);
+    }
 }
