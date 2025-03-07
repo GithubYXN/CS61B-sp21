@@ -7,6 +7,7 @@ import static gitlet.Init.*;
 import static gitlet.Repository.*;
 import static gitlet.Utils.*;
 
+// if operating system is windows, replace / in path with \\\\.
 public class RepositoryUtils {
 
     // Get the HEAD point(sh1id).
@@ -17,8 +18,12 @@ public class RepositoryUtils {
 
     // Get current branch.
     public static String getCurrentBranch() {
-        File head = new File(readContentsAsString(HEAD));
-        return head.getName();
+        String headPath = readContentsAsString(HEAD);
+        String[] path = headPath.split("refs/heads/");
+        if (path.length >= 2) {
+            return path[1];
+        }
+        return "";
     }
 
     // Get all branches.
@@ -28,13 +33,13 @@ public class RepositoryUtils {
 
     // Get the tree map of commit with commit id.
     public static TreeMap<String, String> getTreeMap(String commitId) {
-        Commit c = Commit.fromFile(commitId);
+        Commit c = Commit.fromFile(commitId, COMMIT_OBJECT_DIR);
         return c.getBlobsMap();
     }
 
     // Get the designated version of file f.
     public static String getDesignatedVersion(String commitId, String filename) {
-        Commit designatedCommit = Commit.fromFile(commitId);
+        Commit designatedCommit = Commit.fromFile(commitId, COMMIT_OBJECT_DIR);
         if (designatedCommit == null) {
             System.out.println("No commit with that id exists.");
             return "no commit";
@@ -188,11 +193,11 @@ public class RepositoryUtils {
     }
 
     // Get all commits in given branch.
-    public static Queue<List<String>> getAllCommits(String branch) {
+    public static Queue<List<String>> getAllCommits(String branch, File branchDir, File commitDir) {
         Queue<List<String>> q = new LinkedList<>();
         Queue<List<String>> allCommits = new LinkedList<>();
 
-        File branchHead = join(HEAD_DIR, branch);
+        File branchHead = join(branchDir, branch);
         String headCommitId = readContentsAsString(branchHead);
 
         q.add(List.of(headCommitId));
@@ -201,7 +206,7 @@ public class RepositoryUtils {
             List<String> commits = q.poll();
             List<String> parents = new ArrayList<>();
             for (String commitId : commits) {
-                Commit c = Commit.fromFile(commitId);
+                Commit c = Commit.fromFile(commitId, commitDir);
                 String firstParent = c.getParent();
                 String secondParent = c.getSecondParent();
                 if (firstParent != null) {
@@ -221,8 +226,10 @@ public class RepositoryUtils {
 
     // Get split point.
     public static String getSplitPoint(String currentBranch, String givenBranch) {
-        Queue<List<String>> localCommits = getAllCommits(currentBranch);
-        List<String> givenCommits = queueToList(getAllCommits(givenBranch));
+        Queue<List<String>> localCommits = getAllCommits(
+                currentBranch, HEAD_DIR, COMMIT_OBJECT_DIR);
+        List<String> givenCommits = queueToList(getAllCommits(
+                givenBranch, HEAD_DIR, COMMIT_OBJECT_DIR));
         while (!localCommits.isEmpty()) {
             List<String> commits = localCommits.poll();
             for (String commit : commits) {
@@ -275,19 +282,21 @@ public class RepositoryUtils {
     }
     // Check if remote branch's head is in the history of the current local head.
     public static boolean isHistory(File remoteDir, String remoteBranchName) {
-        File remoteBranch = join(remoteDir, "\\refs\\heads\\" + remoteBranchName);
+        File remoteBranch = join(remoteDir, "/refs/heads/" + remoteBranchName);
         if (!remoteBranch.exists()) {
             return true;
         }
         String remoteBranchCommitId = readContentsAsString(remoteBranch);
-        Queue<List<String>> localCommitsQueue = getAllCommits(getCurrentBranch());
+        Queue<List<String>> localCommitsQueue = getAllCommits(
+                getCurrentBranch(), HEAD_DIR, COMMIT_OBJECT_DIR);
         List<String> localCommits = queueToList(localCommitsQueue);
         return localCommits.contains(remoteBranchCommitId);
     }
 
     public static void pushCommitsTo(File remoteCommitDir) {
         List<String> remoteCommits = plainFilenamesIn(remoteCommitDir);
-        List<String> localCommits = queueToList(getAllCommits(getCurrentBranch()));
+        List<String> localCommits = queueToList(
+                getAllCommits(getCurrentBranch(), HEAD_DIR, COMMIT_OBJECT_DIR));
         for (String localCommit : localCommits) {
             if (!remoteCommits.contains(localCommit)) {
                 File commit = join(remoteCommitDir, localCommit);
@@ -300,7 +309,7 @@ public class RepositoryUtils {
     public static void pushFilesTo(File remoteFileDir) {
         List<String> remoteFiles = plainFilenamesIn(remoteFileDir);
         TreeMap<String, String> localTrackedMap = getTreeMap(getHead());
-        List<String> localFiles = List.copyOf(localTrackedMap.keySet());
+        List<String> localFiles = List.copyOf(localTrackedMap.values());
         for (String localFile : localFiles) {
             if (!remoteFiles.contains(localFile)) {
                 File file = join(remoteFileDir, localFile);

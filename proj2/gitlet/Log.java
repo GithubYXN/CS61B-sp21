@@ -24,13 +24,14 @@ public class Log {
     }
 
     public static void resetLog(String commitId) {
-        Commit c = Commit.fromFile(commitId);
+        Commit c = Commit.fromFile(commitId, COMMIT_OBJECT_DIR);
         StringBuilder log = new StringBuilder();
         while (c != null) {
-            log.append("===\n" + "commit ").append(commitId).append("\n")
+            Blob b = new Blob(c);
+            log.append("===\n" + "commit ").append(b.getSha1id()).append("\n")
                     .append("Date: ").append(c.getTimestamp()).append("\n")
                     .append(c.getMessage()).append("\n\n");
-            c = Commit.fromFile(c.getParent());
+            c = Commit.fromFile(c.getParent(), COMMIT_OBJECT_DIR);
         }
         writeContents(LOGFILE, log.toString());
     }
@@ -43,7 +44,7 @@ public class Log {
         StringBuilder log = new StringBuilder();
         List<String> commits = plainFilenamesIn(COMMIT_OBJECT_DIR);
         for (String commitId : commits) {
-            Commit c = Commit.fromFile(commitId);
+            Commit c = Commit.fromFile(commitId, COMMIT_OBJECT_DIR);
             log.append("===\n" + "commit ").append(commitId).append("\n")
                     .append("Date: ").append(c.getTimestamp()).append("\n")
                     .append(c.getMessage()).append("\n\n");

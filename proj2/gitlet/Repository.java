@@ -14,6 +14,7 @@ import static gitlet.Log.*;
  *
  *  @author yangfx
  */
+// if operating system is windows, replace / in path with \\\\.
 public class Repository {
     // The current working directory.
     public static final File CWD = new File(System.getProperty("user.dir"));
@@ -55,7 +56,7 @@ public class Repository {
 
     private static void commit(String message, String secondParentId) {
         String parentId = getHead();
-        Commit parentCommit = Commit.fromFile(parentId);
+        Commit parentCommit = Commit.fromFile(parentId, COMMIT_OBJECT_DIR);
         TreeMap<String, String> blobsMap = parentCommit.getBlobsMap();
         Commit toCommit = new Commit(message, parentId, secondParentId, blobsMap);
         List<String> addStagingFiles = plainFilenamesIn(ADD_DIR);
@@ -139,7 +140,7 @@ public class Repository {
         List<String> commits = plainFilenamesIn(COMMIT_OBJECT_DIR);
         int found = 0;
         for (String commitId : commits) {
-            Commit c = Commit.fromFile(commitId);
+            Commit c = Commit.fromFile(commitId, COMMIT_OBJECT_DIR);
             if (c.getMessage().equals(message)) {
                 found++;
                 System.out.println(commitId);
@@ -242,7 +243,7 @@ public class Repository {
 
     // Reset the current head to given commit.
     public static void reset(String commitId) {
-        Commit givenCommit = Commit.fromFile(commitId);
+        Commit givenCommit = Commit.fromFile(commitId, COMMIT_OBJECT_DIR);
         if (givenCommit == null) {
             System.out.println("No commit with that id exists.");
         } else {
@@ -363,7 +364,7 @@ public class Repository {
         if (!remote.exists()) {
             System.out.println("A remote with that name does not exist.");
         }
-        restrictedDelete(remote);
+        remote.delete();
     }
 
     public static void push(String remoteName, String remoteBranchName) {
@@ -373,27 +374,88 @@ public class Repository {
         } else if (!isHistory(remoteDir, remoteBranchName)) {
             System.out.println("Please pull down remote changes before pushing.");
         } else {
-            File remoteCommitDir = join(remoteDir, "\\objects\\commit");
+            File remoteCommitDir = join(remoteDir, "/objects/commit");
             pushCommitsTo(remoteCommitDir);
 
-            File remoteFileDir = join(remoteDir, "\\objects\\file");
+            File remoteFileDir = join(remoteDir, "/objects/file");
             pushFilesTo(remoteFileDir);
 
             TreeMap<String, String> headMap = getTreeMap(getHead());
+            String remote = remoteDir.getAbsolutePath();
+            File remoteWorkingDir = new File(remote.substring(0, remote.length() - 8));
+            List<String> workingFiles = plainFilenamesIn(remoteWorkingDir);
+            for (String filename : workingFiles) {
+                if (!headMap.containsKey(filename)) {
+                    restrictedDelete(join(remoteWorkingDir, filename));
+                }
+            }
             for (String filename : headMap.keySet()) {
-                File f = join(remoteDir, filename);
-                writeContents(f, (Object) readContents(join(FILE_OBJECT_DIR, headMap.get(filename))));
+                File f = join(remoteWorkingDir, filename);
+                writeContents(f, (Object) readContents(
+                        join(FILE_OBJECT_DIR, headMap.get(filename))));
             }
 
-            File remoteLog = join(remoteDir, "\\logs\\" + remoteBranchName);
+            File remoteLog = join(remoteDir, "/logs/" + remoteBranchName);
             String localLog = readLog();
             writeContents(remoteLog, localLog);
 
-            File remoteBranchHead = join(remoteDir, "\\refs\\heads\\" + remoteBranchName);
+            File remoteBranchHead = join(remoteDir, "/refs/heads/" + remoteBranchName);
             writeContents(remoteBranchHead, getHead());
             File remoteHead = join(remoteDir, "HEAD");
             writeContents(remoteHead, remoteBranchHead.getAbsolutePath());
         }
     }
 
+    public static void fetch(String remoteName, String remoteBranchName) {
+        File remoteDir = getRemoteDirectory(remoteName);
+        if (!remoteDir.exists()) {
+            System.out.println("Remote directory not found.");
+            return;
+        }
+        File remoteCommitDir = join(remoteDir, "/objects/commit");
+        File remoteBranchDir = join(remoteDir, "/refs/heads");
+        File remoteBranch = join(remoteBranchDir, remoteBranchName);
+        if (!remoteBranch.exists()) {
+            System.out.println("That remote does not have that branch.");
+            return;
+        }
+        List<String> allCommits = queueToList(
+                getAllCommits(remoteBranchName, remoteBranchDir, remoteCommitDir));
+        for (String commit : allCommits) {
+            File localCommit = join(COMMIT_OBJECT_DIR, commit);
+            if (!localCommit.exists()) {
+                byte[] content = readContents(join(remoteCommitDir, commit));
+                writeContents(localCommit, content);
+            }
+        }
+
+        File remoteFileDir = join(remoteDir, "/objects/file");
+        String remoteHeadId = readContentsAsString(join(remoteBranchDir, remoteBranchName));
+        Commit remoteHead = Commit.fromFile(remoteHeadId, remoteCommitDir);
+        TreeMap<String, String> remoteHeadMap = remoteHead.getBlobsMap();
+        for (String filename : remoteHeadMap.keySet()) {
+            File localFile = join(FILE_OBJECT_DIR, remoteHeadMap.get(filename));
+            if (!localFile.exists()) {
+                byte[] content = readContents(join(remoteFileDir, remoteHeadMap.get(filename)));
+                writeContents(localFile, content);
+            }
+        }
+
+        File remoteBranchLog = join(remoteDir, "/logs/" + remoteBranchName);
+        String logContent = readContentsAsString(remoteBranchLog);
+        File localBranchLogDir = join(LOG_DIR, remoteName);
+        localBranchLogDir.mkdirs();
+        File localBranchLog = join(localBranchLogDir, remoteBranchName);
+        writeContents(localBranchLog, logContent);
+
+        File localBranchHeadDir = join(HEAD_DIR, remoteName);
+        localBranchHeadDir.mkdirs();
+        File localBranchHead = join(localBranchHeadDir, remoteBranchName);
+        writeContents(localBranchHead, remoteHeadId);
+    }
+
+    public static void pull(String remoteName, String remoteBranchName) {
+        fetch(remoteName, remoteBranchName);
+        merge(remoteName + "/" + remoteBranchName);
+    }
 }

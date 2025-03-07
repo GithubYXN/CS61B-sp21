@@ -172,6 +172,24 @@ public class Main {
                     Repository.push(args[1], args[2]);
                 }
                 break;
+            case "fetch":
+                if (args.length != 3) {
+                    System.out.println("Incorrect operands.");
+                } else if (!RepositoryUtils.repositoryExsists()) {
+                    System.out.println("Not in an initialized Gitlet directory.");
+                } else {
+                    Repository.fetch(args[1], args[2]);
+                }
+                break;
+            case "pull":
+                if (args.length != 3) {
+                    System.out.println("Incorrect operands.");
+                } else if (!RepositoryUtils.repositoryExsists()) {
+                    System.out.println("Not in an initialized Gitlet directory.");
+                } else {
+                    Repository.pull(args[1], args[2]);
+                }
+                break;
             default:
                 System.out.println("No command with that name exists.");
         }
