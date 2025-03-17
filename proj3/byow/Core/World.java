@@ -197,7 +197,8 @@ public class World {
      *
      * @param numOfRooms the number of rooms to be generated
      */
-    public void generateWorld(int numOfRooms) {
+    public void generateWorld() {
+        int numOfRooms = uniform(rand, (width + height) / 6, (width + height) / 3);
         init();
         createRooms(numOfRooms);
         connect();
@@ -215,7 +216,7 @@ public class World {
         TERenderer ter = new TERenderer();
         ter.initialize(60, 40);
         World world = new World(new Random(114514), 60, 40);
-        world.generateWorld(20);
+        world.generateWorld();
         ter.renderFrame(world.getTiles());
     }
 

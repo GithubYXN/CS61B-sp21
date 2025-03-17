@@ -1,7 +1,11 @@
 package byow.Core;
 
+import byow.Input.StringInputSource;
+import byow.InputDemo.InputSource;
 import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
+
+import java.util.Random;
 
 public class Engine {
     TERenderer ter = new TERenderer();
@@ -46,7 +50,28 @@ public class Engine {
         // See proj3.byow.InputDemo for a demo of how you can make a nice clean interface
         // that works for many different input types.
 
-        TETile[][] finalWorldFrame = null;
-        return finalWorldFrame;
+        StringInputSource source = new StringInputSource(input);
+        TETile[][] tiles = null;
+
+        while (source.hasNextKey()) {
+            char c = source.getNextKey();
+            StringBuilder s = new StringBuilder();
+            if (c == 'n' || c == 'N') {
+                while (source.hasNextKey()) {
+                    char nc = source.getNextKey();
+                    if (nc == 's' || nc == 'S') {
+                        break;
+                    }
+                    s.append(nc);
+                }
+                long seed = Integer.parseInt(s.toString());
+                Random rand = new Random(seed);
+                World world = new World(rand, WIDTH, HEIGHT);
+                world.generateWorld();
+                tiles = world.getTiles();
+            }
+        }
+
+        return tiles;
     }
 }
