@@ -12,14 +12,16 @@ import static byow.Core.RandomUtils.*;
 
 public class World {
 
+    private long seed;
     private Random rand;
     private int height;
     private int width;
     private TETile[][] tiles;
     private List<Room> rooms;
 
-    public World(Random rand, int width, int height) {
-        this.rand = rand;
+    public World(long seed, int width, int height) {
+        this.seed = seed;
+        this.rand = new Random(seed);
         this.height = height;
         this.width = width;
         this.tiles = new TETile[width][height];
@@ -192,10 +194,9 @@ public class World {
     }
 
     /**
-     * Generate the world with rooms of number {@code numOfRooms}, then connect them
+     * Generate the world with rooms of random number {@code numOfRooms}, then connect them
      * and surround every floor with wall.
      *
-     * @param numOfRooms the number of rooms to be generated
      */
     public void generateWorld() {
         int numOfRooms = uniform(rand, (width + height) / 6, (width + height) / 3);
@@ -215,7 +216,7 @@ public class World {
     public static void main(String[] args) {
         TERenderer ter = new TERenderer();
         ter.initialize(60, 40);
-        World world = new World(new Random(114514), 60, 40);
+        World world = new World(5197880843569031643L, 60, 40);
         world.generateWorld();
         ter.renderFrame(world.getTiles());
     }

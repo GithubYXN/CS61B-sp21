@@ -64,9 +64,8 @@ public class Engine {
                     }
                     s.append(nc);
                 }
-                long seed = Integer.parseInt(s.toString());
-                Random rand = new Random(seed);
-                World world = new World(rand, WIDTH, HEIGHT);
+                long seed = Long.parseLong(s.toString());
+                World world = new World(seed, WIDTH, HEIGHT);
                 world.generateWorld();
                 tiles = world.getTiles();
             }
