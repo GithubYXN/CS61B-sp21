@@ -1,16 +1,15 @@
 package byow.Core;
 
 import byow.Input.StringInputSource;
-import byow.InputDemo.InputSource;
 import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
 
-import java.util.Random;
+import static byow.Core.Utils.*;
 
 public class Engine {
     TERenderer ter = new TERenderer();
     /* Feel free to change the width and height. */
-    public static final int WIDTH = 80;
+    public static final int WIDTH = 60;
     public static final int HEIGHT = 40;
 
     /**
@@ -18,6 +17,9 @@ public class Engine {
      * including inputs from the main menu.
      */
     public void interactWithKeyboard() {
+        InteractGame game = new InteractGame(WIDTH, HEIGHT);
+        game.startGame();
+
     }
 
     /**
@@ -42,35 +44,10 @@ public class Engine {
      * @return the 2D TETile[][] representing the state of the world
      */
     public TETile[][] interactWithInputString(String input) {
-        // TODO: Fill out this method so that it run the engine using the input
-        // passed in as an argument, and return a 2D tile representation of the
-        // world that would have been drawn if the same inputs had been given
-        // to interactWithKeyboard().
-        //
-        // See proj3.byow.InputDemo for a demo of how you can make a nice clean interface
-        // that works for many different input types.
-
         StringInputSource source = new StringInputSource(input);
-        TETile[][] tiles = null;
+        World world = generateWithString(source);
 
-        while (source.hasNextKey()) {
-            char c = source.getNextKey();
-            StringBuilder s = new StringBuilder();
-            if (c == 'n' || c == 'N') {
-                while (source.hasNextKey()) {
-                    char nc = source.getNextKey();
-                    if (nc == 's' || nc == 'S') {
-                        break;
-                    }
-                    s.append(nc);
-                }
-                long seed = Long.parseLong(s.toString());
-                World world = new World(seed, WIDTH, HEIGHT);
-                world.generateWorld();
-                tiles = world.getTiles();
-            }
-        }
-
-        return tiles;
+        return world.getTiles();
     }
+
 }

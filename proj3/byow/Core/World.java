@@ -4,23 +4,22 @@ import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 import static byow.Core.RandomUtils.*;
 
-public class World {
+public class World implements Serializable {
 
-    private long seed;
-    private Random rand;
+    private final Random rand;
     private int height;
     private int width;
     private TETile[][] tiles;
     private List<Room> rooms;
 
     public World(long seed, int width, int height) {
-        this.seed = seed;
         this.rand = new Random(seed);
         this.height = height;
         this.width = width;
@@ -32,7 +31,7 @@ public class World {
      * An inner class represents a room object, with the value of its
      * left bottom, width and height.
      */
-    private class Room {
+    private class Room implements Serializable {
         int leftBottomX;
         int leftBottomY;
         int height;
@@ -109,7 +108,8 @@ public class World {
      * @return true if it's valid and false if it isn't
      */
     private boolean isValidRoom(Room room) {
-        if (room.leftBottomX + room.width > width - 1 || room.leftBottomY + room.height > height - 1) {
+        if (room.leftBottomX + room.width > width - 1
+                || room.leftBottomY + room.height > height - 1) {
             return false;
         } else {
             for (int x = room.leftBottomX; x < room.leftBottomX + room.width; x++) {
@@ -193,6 +193,7 @@ public class World {
         tiles[x][y] = Tileset.AVATAR;
     }
 
+
     /**
      * Generate the world with rooms of random number {@code numOfRooms}, then connect them
      * and surround every floor with wall.
@@ -208,15 +209,25 @@ public class World {
     }
 
 
+
+
     // Getter functions
     public TETile[][] getTiles() {
         return tiles;
     }
 
+    public int getHeight() {
+        return height;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
     public static void main(String[] args) {
         TERenderer ter = new TERenderer();
-        ter.initialize(60, 40);
-        World world = new World(5197880843569031643L, 60, 40);
+        ter.initialize(60, 40, 5, 5);
+        World world = new World(5197880843569031643L, 50, 30);
         world.generateWorld();
         ter.renderFrame(world.getTiles());
     }

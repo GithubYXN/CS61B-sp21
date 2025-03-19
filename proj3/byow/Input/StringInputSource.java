@@ -14,7 +14,7 @@ public class StringInputSource implements InputSource {
     public char getNextKey() {
         char key = input.charAt(index);
         index += 1;
-        return key;
+        return Character.toUpperCase(key);
     }
 
     @Override

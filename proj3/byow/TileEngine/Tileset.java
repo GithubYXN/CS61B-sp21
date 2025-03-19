@@ -1,6 +1,7 @@
 package byow.TileEngine;
 
 import java.awt.Color;
+import java.io.File;
 
 /**
  * Contains constant tile objects, to avoid having to remake the same tiles in different parts of
@@ -17,12 +18,14 @@ import java.awt.Color;
  */
 
 public class Tileset {
-    public static final TETile AVATAR = new TETile('@', Color.white, Color.black, "you");
+    public static final TETile AVATAR = new TETile('@', Color.white, Color.black, "you",
+            System.getProperty("user.dir") + File.separator + "avatar.png");
     public static final TETile WALL = new TETile('#', new Color(216, 128, 128), Color.darkGray,
-            "wall");
+            "wall", System.getProperty("user.dir") + File.separator + "wall.png");
     public static final TETile FLOOR = new TETile('·', new Color(128, 192, 128), Color.black,
-            "floor");
-    public static final TETile NOTHING = new TETile(' ', Color.black, Color.black, "nothing");
+            "floor", System.getProperty("user.dir") + File.separator + "floor.png");
+    public static final TETile NOTHING = new TETile(' ', Color.black, Color.black, "nothing",
+            System.getProperty("user.dir") + File.separator + "nothing.png");
     public static final TETile GRASS = new TETile('"', Color.green, Color.black, "grass");
     public static final TETile WATER = new TETile('≈', Color.blue, Color.black, "water");
     public static final TETile FLOWER = new TETile('❀', Color.magenta, Color.pink, "flower");
